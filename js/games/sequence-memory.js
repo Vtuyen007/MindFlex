@@ -1,44 +1,41 @@
 import { $, $$, sleep, showToast, triggerHaptic } from '../utils.js';
 import * as Storage from '../storage.js';
-import { playTap, playCorrect, playError, playCompletion, playCountdown } from '../audio.js';
+import { playTap, playSimonTone, playCorrect, playError, playCompletion, playCountdown } from '../audio.js';
 
 const GAME_ID = 'sequence';
-let state = 'idle'; // idle, preparing, playing, paused, answering
+let state = 'idle'; 
 let config = {};
 
 let currentRound = 0;
 let currentLength = 3;
 let targetSequence = [];
-let userAnswer = [];
-let results = []; // round results
+let userStep = 0; // tracking how many steps the user has successfully clicked in current round
+let results = []; 
 let activeTimeout = null;
 let isPresenting = false;
-let adaptiveHistory = []; // track recent correctness for adaptive mode (true/false)
-let currentItemIndex = 0;
+let adaptiveHistory = []; 
 
 export function init() {
     state = 'idle';
     loadConfig();
     renderSetup();
-    $('#active-game-title').textContent = 'Ghi nhớ chuỗi';
+    $('#active-game-title').textContent = 'Ghi nhớ chuỗi (Simon)';
 }
 
 function loadConfig() {
     const data = Storage.getData();
     config = Object.assign({
-        length: 5,
-        itemDuration: 1000,
-        gapDuration: 200,
-        recallDelay: 1000,
+        length: 4,
+        speed: 800, // ms per flash
         rounds: 5,
-        adaptive: false,
-        type: 'numbers', // numbers, letters, mixed
+        adaptive: true,
         reverse: false
-    }, data.games[GAME_ID].lastSetup);
+    }, data.games[GAME_ID]?.lastSetup || {});
 }
 
 function saveConfig() {
     const data = Storage.getData();
+    if (!data.games[GAME_ID]) data.games[GAME_ID] = {};
     data.games[GAME_ID].lastSetup = config;
     Storage.saveData();
 }
@@ -50,15 +47,6 @@ function renderSetup() {
             <h3>Tùy chỉnh Ghi nhớ chuỗi</h3>
             
             <div class="setting-item">
-                <label>Loại chuỗi</label>
-                <select id="seq-type" class="form-control">
-                    <option value="numbers" ${config.type == 'numbers' ? 'selected' : ''}>Số (0-9)</option>
-                    <option value="letters" ${config.type == 'letters' ? 'selected' : ''}>Chữ cái (A-Z)</option>
-                    <option value="mixed" ${config.type == 'mixed' ? 'selected' : ''}>Hỗn hợp</option>
-                </select>
-            </div>
-            
-            <div class="setting-item">
                 <label>Nhớ ngược (Reverse)</label>
                 <label class="switch">
                     <input type="checkbox" id="seq-reverse" ${config.reverse ? 'checked' : ''}>
@@ -67,7 +55,7 @@ function renderSetup() {
             </div>
             
             <div class="setting-item">
-                <label>Độ khó tự động</label>
+                <label>Độ khó tự động tăng dần</label>
                 <label class="switch">
                     <input type="checkbox" id="seq-adaptive" ${config.adaptive ? 'checked' : ''}>
                     <span class="slider round"></span>
@@ -77,27 +65,25 @@ function renderSetup() {
             <div class="setting-item" id="seq-length-group" style="display: ${config.adaptive ? 'none' : 'flex'}">
                 <label>Độ dài chuỗi</label>
                 <select id="seq-length" class="form-control">
-                    ${[3,4,5,6,7,8,9,10,11,12,13,14,15].map(v => `<option value="${v}" ${config.length == v ? 'selected' : ''}>${v} ký tự</option>`).join('')}
+                    ${[3,4,5,6,7,8,9,10,12,15].map(v => `<option value="${v}" ${config.length == v ? 'selected' : ''}>${v} bước</option>`).join('')}
                 </select>
             </div>
             
             <div class="setting-item">
                 <label>Số lượt chơi</label>
                 <select id="seq-rounds" class="form-control">
+                    <option value="3" ${config.rounds == 3 ? 'selected' : ''}>3 lượt</option>
                     <option value="5" ${config.rounds == 5 ? 'selected' : ''}>5 lượt</option>
                     <option value="10" ${config.rounds == 10 ? 'selected' : ''}>10 lượt</option>
-                    <option value="15" ${config.rounds == 15 ? 'selected' : ''}>15 lượt</option>
                 </select>
             </div>
             
             <div class="setting-item">
-                <label>Thời gian hiện 1 mục</label>
-                <select id="seq-item-dur" class="form-control">
-                    <option value="2000" ${config.itemDuration == 2000 ? 'selected' : ''}>2s</option>
-                    <option value="1500" ${config.itemDuration == 1500 ? 'selected' : ''}>1.5s</option>
-                    <option value="1000" ${config.itemDuration == 1000 ? 'selected' : ''}>1s</option>
-                    <option value="700" ${config.itemDuration == 700 ? 'selected' : ''}>0.7s</option>
-                    <option value="500" ${config.itemDuration == 500 ? 'selected' : ''}>0.5s</option>
+                <label>Tốc độ hiển thị</label>
+                <select id="seq-speed" class="form-control">
+                    <option value="1200" ${config.speed == 1200 ? 'selected' : ''}>Chậm</option>
+                    <option value="800" ${config.speed == 800 ? 'selected' : ''}>Bình thường</option>
+                    <option value="400" ${config.speed == 400 ? 'selected' : ''}>Nhanh</option>
                 </select>
             </div>
             
@@ -111,34 +97,20 @@ function renderSetup() {
 
     $('#seq-btn-start').addEventListener('click', () => {
         playTap();
-        config.type = $('#seq-type').value;
         config.reverse = $('#seq-reverse').checked;
         config.adaptive = $('#seq-adaptive').checked;
         config.length = parseInt($('#seq-length').value);
         config.rounds = parseInt($('#seq-rounds').value);
-        config.itemDuration = parseInt($('#seq-item-dur').value);
-        // hardcode reasonable gaps
-        config.gapDuration = 200;
-        config.recallDelay = 1000;
+        config.speed = parseInt($('#seq-speed').value);
         saveConfig();
         start();
     });
 }
 
-function generateSequence(length, type) {
+function generateSequence(length) {
     let seq = [];
     for (let i = 0; i < length; i++) {
-        if (type === 'numbers') {
-            seq.push(Math.floor(Math.random() * 10).toString());
-        } else if (type === 'letters') {
-            seq.push(String.fromCharCode(65 + Math.floor(Math.random() * 26)));
-        } else {
-            if (Math.random() > 0.5) {
-                seq.push(Math.floor(Math.random() * 10).toString());
-            } else {
-                seq.push(String.fromCharCode(65 + Math.floor(Math.random() * 26)));
-            }
-        }
+        seq.push(Math.floor(Math.random() * 4)); // 0, 1, 2, 3
     }
     return seq;
 }
@@ -162,29 +134,29 @@ async function startRound() {
     state = 'preparing';
     $('#btn-game-pause').style.display = 'inline-flex';
     
-    targetSequence = generateSequence(currentLength, config.type);
-    userAnswer = [];
+    targetSequence = generateSequence(currentLength);
+    userStep = 0;
     
-    renderPlayAreaForPresentation();
+    renderPlayArea();
     
-    // Countdown
-    const display = $('#seq-display');
-    display.textContent = '3';
-    playCountdown(false);
-    await sleep(800);
-    if (state !== 'preparing') return; // handles early pause/exit
+    const statusText = $('#seq-status-text');
     
-    display.textContent = '2';
+    statusText.textContent = '3';
     playCountdown(false);
     await sleep(800);
     if (state !== 'preparing') return;
     
-    display.textContent = '1';
+    statusText.textContent = '2';
     playCountdown(false);
     await sleep(800);
     if (state !== 'preparing') return;
     
-    display.textContent = 'BẮT ĐẦU';
+    statusText.textContent = '1';
+    playCountdown(false);
+    await sleep(800);
+    if (state !== 'preparing') return;
+    
+    statusText.textContent = 'GHI NHỚ...';
     playCountdown(true);
     await sleep(800);
     if (state !== 'preparing') return;
@@ -192,192 +164,124 @@ async function startRound() {
     presentSequence();
 }
 
-function renderPlayAreaForPresentation() {
+function renderPlayArea() {
     const playArea = $('#game-play-area');
     playArea.innerHTML = `
         <div style="display: flex; justify-content: space-between;">
             <div>Lượt: ${currentRound + 1}/${config.rounds}</div>
             <div>Độ dài: ${currentLength}</div>
         </div>
+        
+        <div id="seq-status-text" class="text-center" style="font-size: 1.5rem; font-weight: bold; margin: var(--spacing-md) 0; min-height: 36px; color: var(--clr-primary);"></div>
+        
         ${config.reverse ? '<div class="text-center" style="color: var(--clr-magenta); font-weight: bold;">NHỚ NGƯỢC LẠI</div>' : ''}
-        <div class="sequence-container">
-            <div id="seq-display" class="sequence-display"></div>
+        
+        <div class="simon-grid">
+            <div class="simon-btn simon-0" data-idx="0"></div>
+            <div class="simon-btn simon-1" data-idx="1"></div>
+            <div class="simon-btn simon-2" data-idx="2"></div>
+            <div class="simon-btn simon-3" data-idx="3"></div>
         </div>
     `;
+    
+    $$('.simon-btn').forEach(btn => {
+        btn.addEventListener('click', handleSimonClick);
+    });
 }
 
 async function presentSequence() {
     state = 'playing';
     isPresenting = true;
     
-    const display = $('#seq-display');
-    display.textContent = '';
+    // Make sure buttons aren't clickable during presentation
+    $$('.simon-btn').forEach(btn => btn.style.pointerEvents = 'none');
     
     for (let i = 0; i < targetSequence.length; i++) {
         if (state !== 'playing') {
             isPresenting = false;
-            return; // interrupted
+            return; 
         }
         
-        display.style.opacity = '1';
-        display.style.transform = 'scale(1)';
-        display.textContent = targetSequence[i];
+        const idx = targetSequence[i];
+        const btn = $('.simon-btn[data-idx="' + idx + '"]');
         
-        await sleep(config.itemDuration);
+        if (btn) {
+            btn.classList.add('simon-flash');
+            playSimonTone(idx);
+        }
+        
+        await sleep(config.speed * 0.6); // flash duration
+        if (btn) btn.classList.remove('simon-flash');
+        
         if (state !== 'playing') { isPresenting = false; return; }
         
-        display.style.opacity = '0';
-        display.style.transform = 'scale(0.8)';
-        
-        if (i < targetSequence.length - 1) {
-            await sleep(config.gapDuration);
-        }
+        await sleep(config.speed * 0.4); // gap duration
     }
     
     isPresenting = false;
     
     if (state === 'playing') {
-        state = 'preparing';
-        await sleep(config.recallDelay);
-        if (state === 'preparing') {
-            startAnswering();
+        state = 'answering';
+        $('#seq-status-text').textContent = 'ĐẾN LƯỢT BẠN!';
+        $('#seq-status-text').style.color = 'var(--clr-success)';
+        $$('.simon-btn').forEach(btn => btn.style.pointerEvents = 'auto');
+    }
+}
+
+async function handleSimonClick(e) {
+    if (state !== 'answering') return;
+    
+    const idx = parseInt(e.target.dataset.idx);
+    e.target.classList.add('simon-flash');
+    playSimonTone(idx);
+    
+    setTimeout(() => {
+        e.target.classList.remove('simon-flash');
+    }, 200);
+    
+    const expectedSequence = config.reverse ? [...targetSequence].reverse() : targetSequence;
+    const expectedIdx = expectedSequence[userStep];
+    
+    if (idx === expectedIdx) {
+        userStep++;
+        if (userStep === expectedSequence.length) {
+            // Round passed completely
+            handleRoundEnd(true);
         }
-    }
-}
-
-function startAnswering() {
-    state = 'answering';
-    $('#btn-game-pause').style.display = 'inline-flex'; // Can pause while answering
-    
-    const playArea = $('#game-play-area');
-    
-    // Build Keypad based on type
-    let keys = [];
-    if (config.type === 'numbers') {
-        keys = ['1','2','3','4','5','6','7','8','9','C','0','⌫'];
     } else {
-        // Just use a native text input for letters/mixed to rely on OS keyboard
-        // or a simplified alphanumeric keypad
-        // Let's rely on native input but styled well
-    }
-    
-    playArea.innerHTML = `
-        <div style="display: flex; justify-content: space-between;">
-            <div>Lượt: ${currentRound + 1}/${config.rounds}</div>
-            <div>${config.reverse ? 'Ghi ngược lại' : 'Ghi đúng thứ tự'}</div>
-        </div>
-        
-        <div class="sequence-container">
-            <div class="sequence-input-area" style="margin-top: 20px;">
-                <div id="seq-answer-box" class="sequence-answer-box allow-select"></div>
-                
-                ${config.type === 'numbers' ? `
-                    <div class="keypad">
-                        ${keys.map(k => `<button class="keypad-btn" data-key="${k}">${k}</button>`).join('')}
-                    </div>
-                ` : `
-                    <input type="text" id="seq-native-input" class="form-control" style="font-size: 2rem; text-align: center; margin-bottom: 20px; text-transform: uppercase;" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
-                `}
-                
-                <button id="seq-btn-confirm" class="btn btn-primary btn-large mt-4" disabled>Xác nhận</button>
-            </div>
-        </div>
-    `;
-    
-    if (config.type === 'numbers') {
-        $$('.keypad-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const k = e.target.dataset.key;
-                if (k === 'C') {
-                    userAnswer = [];
-                    playTap();
-                } else if (k === '⌫') {
-                    userAnswer.pop();
-                    playTap();
-                } else {
-                    if (userAnswer.length < currentLength + 5) {
-                        userAnswer.push(k);
-                        playTap();
-                    }
-                }
-                updateAnswerBox();
-            });
-        });
-    } else {
-        const input = $('#seq-native-input');
-        input.focus();
-        input.addEventListener('input', (e) => {
-            const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-            e.target.value = val;
-            userAnswer = val.split('');
-            updateAnswerBox();
-        });
-    }
-    
-    $('#seq-btn-confirm').addEventListener('click', () => {
-        playTap();
-        checkAnswer();
-    });
-}
-
-function updateAnswerBox() {
-    const box = $('#seq-answer-box');
-    if (box) box.textContent = userAnswer.join('');
-    
-    const confirmBtn = $('#seq-btn-confirm');
-    if (confirmBtn) {
-        confirmBtn.disabled = userAnswer.length === 0;
+        // Wrong click
+        triggerHaptic('heavy');
+        playError();
+        handleRoundEnd(false);
     }
 }
 
-async function checkAnswer() {
+async function handleRoundEnd(isSuccess) {
     state = 'preparing';
+    $$('.simon-btn').forEach(btn => btn.style.pointerEvents = 'none');
     
-    let expected = [...targetSequence];
-    if (config.reverse) expected.reverse();
+    const statusText = $('#seq-status-text');
     
-    let correctPos = 0;
-    let maxLen = Math.max(expected.length, userAnswer.length);
-    
-    for (let i = 0; i < maxLen; i++) {
-        if (expected[i] === userAnswer[i]) {
-            correctPos++;
-        }
+    if (isSuccess) {
+        statusText.textContent = 'CHÍNH XÁC!';
+        statusText.style.color = 'var(--clr-success)';
+        playCorrect();
+        triggerHaptic('light');
+    } else {
+        statusText.textContent = 'SAI RỒI!';
+        statusText.style.color = 'var(--clr-error)';
     }
-    
-    const isExact = expected.join('') === userAnswer.join('');
     
     results.push({
         length: currentLength,
-        target: expected.join(''),
-        user: userAnswer.join(''),
-        isExact,
-        correctPos,
-        accuracy: expected.length > 0 ? (correctPos / expected.length) : 0
+        isExact: isSuccess,
+        stepsCompleted: userStep
     });
-    
-    const box = $('#seq-answer-box');
-    if (box) {
-        if (isExact) {
-            box.classList.add('anim-correct');
-            playCorrect();
-            triggerHaptic('light');
-        } else {
-            box.classList.add('anim-error');
-            box.innerHTML = `
-                <div style="text-decoration: line-through; color: var(--clr-error); font-size: 1.2rem">${userAnswer.join('')}</div>
-                <div style="color: var(--clr-success); font-weight: bold">${expected.join('')}</div>
-            `;
-            playError();
-            triggerHaptic('heavy');
-        }
-    }
     
     await sleep(1500);
     
-    // Adaptive logic
     if (config.adaptive) {
-        adaptiveHistory.push(isExact);
+        adaptiveHistory.push(isSuccess);
         if (adaptiveHistory.length >= 2) {
             const lastTwo = adaptiveHistory.slice(-2);
             if (lastTwo[0] && lastTwo[1]) {
@@ -402,7 +306,6 @@ async function checkAnswer() {
 
 export function pause() {
     if (state === 'playing') {
-        // Pausing during presentation forces restart of round to prevent cheating
         state = 'paused';
         showToast("Đã tạm dừng. Ván hiện tại sẽ được tải lại.");
     } else if (state === 'answering') {
@@ -412,8 +315,7 @@ export function pause() {
 
 export function resume() {
     if (state === 'paused') {
-        // If we paused during presentation, restart the round
-        if (isPresenting || !targetSequence.length || userAnswer.length === 0 && !$('#seq-native-input')) {
+        if (isPresenting || userStep === 0) {
             startRound();
         } else {
             state = 'answering';
@@ -433,41 +335,33 @@ export function finish() {
     let exactCount = 0;
     let sumLength = 0;
     let maxLenReached = 0;
-    let totalPositions = 0;
-    let correctPositions = 0;
     
     results.forEach(r => {
         if (r.isExact) exactCount++;
         sumLength += r.length;
         if (r.length > maxLenReached && r.isExact) maxLenReached = r.length;
         
-        totalPositions += r.target.length;
-        correctPositions += r.correctPos;
-        
-        // Base score per round = length * 10
-        let roundScore = (r.correctPos / r.target.length) * (r.length * 10);
-        if (r.isExact) roundScore += 20; // Bonus for exact
+        let roundScore = r.isExact ? (r.length * 20) : (r.stepsCompleted * 5);
         if (config.reverse) roundScore *= 1.2;
         
         totalScore += roundScore;
     });
     
-    // Normalize to 1000 max broadly
-    const theoreticalMax = config.rounds * (15 * 10 + 20) * (config.reverse ? 1.2 : 1);
-    let normalizedScore = Math.floor((totalScore / theoreticalMax) * 1000 * (config.adaptive ? 1.5 : 1)); // bonus for adaptive
+    const theoreticalMax = config.rounds * (15 * 20) * (config.reverse ? 1.2 : 1);
+    let normalizedScore = Math.floor((totalScore / (theoreticalMax || 1)) * 1000 * (config.adaptive ? 1.2 : 1));
     if (normalizedScore > 1000) normalizedScore = 1000;
     
-    const overallAcc = totalPositions > 0 ? (correctPositions / totalPositions) : 0;
+    const overallAcc = results.length > 0 ? (exactCount / results.length) : 0;
     
     const resultInfo = {
         score: normalizedScore,
         accuracy: Math.round(overallAcc * 100),
         exactCount,
         maxLenReached,
-        avgLength: sumLength / results.length
+        avgLength: results.length > 0 ? sumLength / results.length : 0
     };
     
-    const modeKey = `${config.type}_${config.adaptive ? 'adapt' : config.length}_${config.reverse ? 'rev' : 'fwd'}`;
+    const modeKey = `simon_${config.adaptive ? 'adapt' : config.length}_${config.reverse ? 'rev' : 'fwd'}`;
     const isNewRecord = Storage.saveGameRecord(GAME_ID, modeKey, resultInfo);
     Storage.addSessionResult(GAME_ID, resultInfo);
     
@@ -493,15 +387,15 @@ function renderResults(res, isNewRecord) {
             <div class="result-details">
                 <div class="stat-card">
                     <div class="stat-value" style="color: var(--clr-success)">${res.exactCount}/${config.rounds}</div>
-                    <div class="stat-label">Hoàn toàn chính xác</div>
+                    <div class="stat-label">Hoàn thành</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value">${res.accuracy}%</div>
-                    <div class="stat-label">Độ chính xác vị trí</div>
+                    <div class="stat-label">Tỉ lệ đúng</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value">${res.maxLenReached}</div>
-                    <div class="stat-label">Chuỗi dài nhất đạt được</div>
+                    <div class="stat-label">Chuỗi dài nhất</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value">${(res.avgLength).toFixed(1)}</div>
