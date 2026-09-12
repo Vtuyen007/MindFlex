@@ -1,6 +1,6 @@
 import { $ } from './utils.js';
 import * as Storage from './storage.js';
-import { initTheme, toggleTheme, updateRGBBackground } from './theme.js';
+import { initTheme, toggleTheme, updateRGBBackground, updateThemeSegmentUI } from './theme.js';
 import { initAudio, playTap, toggleGlobalSound } from './audio.js';
 import { initRouter } from './router.js';
 
@@ -28,14 +28,17 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSoundButtonUI(settings.soundEnabled);
 
     // 4. Bind Settings UI
-    const themeSelect = $('#theme-select');
-    themeSelect.value = settings.theme;
-    themeSelect.addEventListener('change', (e) => {
-        playTap();
-        settings.theme = e.target.value;
-        Storage.saveSettings(settings);
-        initTheme(); // re-apply
+    $$('.theme-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            playTap();
+            const theme = e.target.dataset.theme;
+            settings.theme = theme;
+            Storage.saveSettings(settings);
+            initTheme(); // re-apply
+            updateThemeSegmentUI(theme);
+        });
     });
+    updateThemeSegmentUI(settings.theme);
     
     const rgbToggle = $('#rgb-bg-toggle');
     rgbToggle.checked = settings.rgbBackground;

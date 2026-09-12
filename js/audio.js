@@ -3,15 +3,23 @@ import { getSettings, saveSettings } from './storage.js';
 let audioCtx = null;
 let isInitialized = false;
 
-// Simple oscillators for synthesized UI sounds
+// Premium tuned frequencies for UI
 const frequencies = {
-    tap: 400,
-    correct: 880, // A5
-    correctChord: [880, 1108.73, 1318.51], // A Major chord
-    error: 150,
-    countdown: 660, // E5
-    countdownGo: 880 // A5
+    tap: 523.25, // C5
+    correct: [523.25, 659.25], // C5, E5 (Major third)
+    correctChord: [523.25, 659.25, 783.99, 1046.50], // C Maj7 chord
+    error: 164.81, // E3
+    countdown: 659.25, // E5
+    countdownGo: 1046.50 // C6
 };
+
+// Simon Tones
+const simonTones = [
+    329.63, // E4 (Red / 0)
+    261.63, // C4 (Blue / 1)
+    440.00, // A4 (Green / 2)
+    392.00  // G4 (Yellow / 3)
+];
 
 export function initAudio() {
     if (isInitialized) return;
@@ -21,7 +29,6 @@ export function initAudio() {
         audioCtx = new AudioContext();
         isInitialized = true;
         
-        // Listen to global clicks to resume if suspended
         document.addEventListener('click', resumeAudio, { once: false });
         document.addEventListener('touchstart', resumeAudio, { once: false });
     } catch (e) {
@@ -42,7 +49,7 @@ export function toggleGlobalSound() {
     return settings.soundEnabled;
 }
 
-function playTone(freq, type, duration, volMod = 1) {
+function playPremiumTone(freqs, type = 'sine', duration = 0.3, volMod = 1) {
     const settings = getSettings();
     if (!settings.soundEnabled || !audioCtx) return;
     
@@ -51,67 +58,99 @@ function playTone(freq, type, duration, volMod = 1) {
     const masterVolume = (settings.masterVolume / 100) * volMod;
     if (masterVolume <= 0) return;
 
-    const osc = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
+    const freqArray = Array.isArray(freqs) ? freqs : [freqs];
     
-    osc.type = type;
-    
-    if (Array.isArray(freq)) {
-        // Simplified chord, just use first for playTone or implement multi-osc
-        osc.frequency.setValueAtTime(freq[0], audioCtx.currentTime);
-    } else {
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-    }
-    
-    // Envelope
-    gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-    gainNode.gain.linearRampToValueAtTime(masterVolume, audioCtx.currentTime + 0.05);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-    
-    osc.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-    
-    osc.start();
-    osc.stop(audioCtx.currentTime + duration);
+    freqArray.forEach(freq => {
+        // Main oscillator
+        const osc1 = audioCtx.createOscillator();
+        // Layered oscillator for richness
+        const osc2 = audioCtx.createOscillator();
+        
+        const gainNode = audioCtx.createGain();
+        
+        osc1.type = type;
+        osc2.type = type === 'sine' ? 'triangle' : 'sine';
+        
+        osc1.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        // Slight detune for a chorus, premium effect
+        osc2.frequency.setValueAtTime(freq * 1.006, audioCtx.currentTime);
+        
+        // Premium Envelope: Fast attack, smooth exponential decay
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(masterVolume / freqArray.length, audioCtx.currentTime + 0.02);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        
+        const mixGain = audioCtx.createGain();
+        mixGain.gain.value = 0.25; // mix osc2 slightly lower
+        osc2.connect(mixGain);
+        
+        osc1.connect(gainNode);
+        mixGain.connect(gainNode);
+        
+        gainNode.connect(audioCtx.destination);
+        
+        osc1.start();
+        osc2.start();
+        osc1.stop(audioCtx.currentTime + duration);
+        osc2.stop(audioCtx.currentTime + duration);
+    });
 }
 
 export function playTap() {
-    playTone(frequencies.tap, 'sine', 0.1, 0.5);
+    playPremiumTone(frequencies.tap, 'sine', 0.15, 0.4);
+}
+
+export function playSimonTone(idx) {
+    const tone = simonTones[idx] || 400;
+    playPremiumTone(tone, 'triangle', 0.4, 0.6);
 }
 
 export function playCorrect() {
-    playTone(frequencies.correct, 'sine', 0.3, 0.6);
+    playPremiumTone(frequencies.correct, 'sine', 0.4, 0.5);
 }
 
 export function playError() {
-    playTone(frequencies.error, 'sawtooth', 0.4, 0.3);
+    // Sawtooth with low pitch for error buzz
+    playPremiumTone(frequencies.error, 'sawtooth', 0.35, 0.3);
 }
 
 export function playCountdown(isGo = false) {
-    playTone(isGo ? frequencies.countdownGo : frequencies.countdown, 'sine', 0.2, 0.5);
+    playPremiumTone(isGo ? frequencies.countdownGo : frequencies.countdown, 'sine', 0.2, 0.5);
 }
 
 export function playCompletion() {
     const settings = getSettings();
     if (!settings.soundEnabled || !audioCtx) return;
     resumeAudio();
-    const masterVolume = (settings.masterVolume / 100) * 0.6;
+    
+    // Play an arpeggiated Maj7 chord for a premium win sound
+    const masterVolume = (settings.masterVolume / 100) * 0.5;
     if (masterVolume <= 0) return;
 
     frequencies.correctChord.forEach((f, i) => {
-        const osc = audioCtx.createOscillator();
+        const osc1 = audioCtx.createOscillator();
+        const osc2 = audioCtx.createOscillator();
         const gainNode = audioCtx.createGain();
-        osc.type = 'sine';
-        osc.frequency.value = f;
         
-        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(masterVolume / 3, audioCtx.currentTime + (i * 0.1) + 0.05);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.0 + (i * 0.1));
+        osc1.type = 'sine';
+        osc2.type = 'triangle';
+        osc1.frequency.value = f;
+        osc2.frequency.value = f * 1.005; // detune
         
-        osc.connect(gainNode);
+        const startTime = audioCtx.currentTime + (i * 0.1);
+        const duration = 1.5;
+        
+        gainNode.gain.setValueAtTime(0, startTime);
+        gainNode.gain.linearRampToValueAtTime(masterVolume / 3, startTime + 0.05);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+        
+        osc2.connect(gainNode);
+        osc1.connect(gainNode);
         gainNode.connect(audioCtx.destination);
         
-        osc.start(audioCtx.currentTime + (i * 0.1));
-        osc.stop(audioCtx.currentTime + 1.5);
+        osc1.start(startTime);
+        osc2.start(startTime);
+        osc1.stop(startTime + duration);
+        osc2.stop(startTime + duration);
     });
 }

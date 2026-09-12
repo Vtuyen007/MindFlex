@@ -37,9 +37,24 @@ export function toggleTheme() {
     settings.theme = nextTheme;
     Storage.saveSettings(settings);
     
-    // Update select element if we are on settings page
-    const themeSelect = $('#theme-select');
-    if (themeSelect) themeSelect.value = nextTheme;
+    // Update segment buttons if we are on settings page
+    updateThemeSegmentUI(nextTheme);
+}
+
+export function updateThemeSegmentUI(theme) {
+    const buttons = document.querySelectorAll('.theme-btn');
+    if (!buttons.length) return;
+    buttons.forEach(b => {
+        if (b.dataset.theme === theme) {
+            b.style.background = 'var(--clr-primary)';
+            b.style.color = 'white';
+            b.style.fontWeight = 'bold';
+        } else {
+            b.style.background = 'transparent';
+            b.style.color = 'var(--clr-text-muted)';
+            b.style.fontWeight = 'normal';
+        }
+    });
 }
 
 export function applyTheme(themeMode) {
