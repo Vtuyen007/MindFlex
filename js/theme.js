@@ -1,4 +1,3 @@
-import { $, getSettings, saveSettings } from './storage.js'; // Actually need to fix the import, storage doesn't export $. Will use direct document selectors
 import * as Storage from './storage.js';
 const $ = (selector) => document.querySelector(selector);
 
