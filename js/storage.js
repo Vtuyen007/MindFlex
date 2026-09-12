@@ -1,4 +1,4 @@
-import { showToast } from './utils.js';
+import { showToast, showConfirmModal } from './utils.js';
 
 const STORAGE_KEY = 'mindflex_data_v1';
 
@@ -193,10 +193,10 @@ export function importData(fileStr) {
 }
 
 export function resetData() {
-    if (confirm("Bạn có chắc chắn muốn xóa toàn bộ dữ liệu? Hành động này không thể hoàn tác.")) {
+    showConfirmModal("Bạn có chắc chắn muốn xóa toàn bộ dữ liệu? Hành động này không thể hoàn tác.", () => {
         localStorage.removeItem(STORAGE_KEY);
         appData = JSON.parse(JSON.stringify(defaultData));
         showToast("Đã xóa dữ liệu. Đang tải lại...", 2000);
         setTimeout(() => window.location.reload(), 2000);
-    }
+    });
 }

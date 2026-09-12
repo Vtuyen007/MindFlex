@@ -1,4 +1,4 @@
-import { $, $$ } from './utils.js';
+import { $, $$, showConfirmModal } from './utils.js';
 import * as Storage from './storage.js';
 import { playTap } from './audio.js';
 import { renderStatistics } from './statistics.js';
@@ -108,10 +108,10 @@ function cleanupActiveGame() {
 }
 
 function handleGameExit(targetHash) {
-    if (confirm("Bạn có chắc muốn rời khỏi trò chơi đang dang dở?")) {
+    showConfirmModal("Bạn có chắc muốn rời khỏi trò chơi đang dang dở?", () => {
         cleanupActiveGame();
         window.location.hash = targetHash;
-    }
+    });
 }
 
 export function updateHomeUI() {

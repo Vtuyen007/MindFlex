@@ -1,6 +1,7 @@
 import { $, $$, shuffleArray, sleep, triggerHaptic } from '../utils.js';
 import * as Storage from '../storage.js';
 import { playTap, playCorrect, playError, playCompletion, playCountdown } from '../audio.js';
+import { renderGameResults } from '../game-ui.js';
 
 const GAME_ID = 'icon-story';
 let state = 'idle'; // preparing, memorizing, answering, completed
@@ -489,66 +490,42 @@ function checkAnswer() {
 }
 
 function renderResults(res, isNewRecord) {
-    $('#game-play-area').style.display = 'none';
-    $('#game-setup-area').style.display = 'none';
-    $('#btn-game-pause').style.display = 'none';
-    
-    const resultsArea = $('#game-results-area');
-    resultsArea.style.display = 'block';
-    
-    resultsArea.innerHTML = `
-        <div class="glass-card anim-pop-in" style="text-align: center;">
-            <h3>Kết quả</h3>
-            ${isNewRecord ? '<div style="color: var(--clr-accent); font-weight: bold; margin-top: -10px;">Kỷ lục mới!</div>' : ''}
-            
-            <div class="result-score">${res.score}</div>
-            
-            <div class="result-details">
-                <div class="stat-card">
-                    <div class="stat-value" style="color: var(--clr-success)">${res.correctPos}/${targetIcons.length}</div>
-                    <div class="stat-label">Đúng vị trí</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" style="color: var(--clr-error)">${res.missing}</div>
-                    <div class="stat-label">Bị thiếu</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" style="color: var(--clr-warning)">${res.distractors}</div>
-                    <div class="stat-label">Bị nhiễu</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${res.accuracy}%</div>
-                    <div class="stat-label">Độ chính xác</div>
-                </div>
+    const detailsHTML = `
+        <div class="stat-card" style="flex: 1; min-width: 100px;">
+            <div class="stat-value" style="color: var(--clr-success)">${res.correctPos}/${targetIcons.length}</div>
+            <div class="stat-label">Đúng vị trí</div>
+        </div>
+        <div class="stat-card" style="flex: 1; min-width: 100px;">
+            <div class="stat-value" style="color: var(--clr-error)">${res.missing}</div>
+            <div class="stat-label">Bị thiếu</div>
+        </div>
+        <div class="stat-card" style="flex: 1; min-width: 100px;">
+            <div class="stat-value" style="color: var(--clr-warning)">${res.distractors}</div>
+            <div class="stat-label">Bị nhiễu</div>
+        </div>
+        <div class="stat-card" style="flex: 1; min-width: 100px;">
+            <div class="stat-value">${res.accuracy}%</div>
+            <div class="stat-label">Độ chính xác</div>
+        </div>
+        <div style="width: 100%; margin: var(--spacing-md) 0">
+            <h4 style="margin-bottom: var(--spacing-sm)">Đáp án chuẩn:</h4>
+            <div style="display: flex; justify-content: center; gap: 5px; font-size: 1.5rem">
+                ${res.target.join(' ')}
             </div>
-            
-            <div style="margin: var(--spacing-xl) 0">
-                <h4 style="margin-bottom: var(--spacing-sm)">Đáp án chuẩn:</h4>
-                <div style="display: flex; justify-content: center; gap: 5px; font-size: 1.5rem">
-                    ${res.target.join(' ')}
-                </div>
-                
-                <h4 style="margin-top: var(--spacing-lg); margin-bottom: var(--spacing-sm)">Câu trả lời của bạn:</h4>
-                <div style="display: flex; justify-content: center; gap: 5px; font-size: 1.5rem">
-                    ${res.user.map((u, i) => `<span style="color: ${u === res.target[i] ? 'inherit' : 'var(--clr-error)'}; text-decoration: ${u === res.target[i] ? 'none' : 'line-through'}">${u}</span>`).join(' ')}
-                </div>
-            </div>
-            
-            <div class="action-buttons">
-                <button id="story-btn-replay" class="btn btn-primary btn-large">Chơi lại</button>
-                <button id="story-btn-menu" class="btn btn-secondary btn-large">Tùy chỉnh</button>
+            <h4 style="margin-top: var(--spacing-lg); margin-bottom: var(--spacing-sm)">Câu trả lời của bạn:</h4>
+            <div style="display: flex; justify-content: center; gap: 5px; font-size: 1.5rem">
+                ${res.user.map((u, i) => `<span style="color: ${u === res.target[i] ? 'inherit' : 'var(--clr-error)'}; text-decoration: ${u === res.target[i] ? 'none' : 'line-through'}">${u}</span>`).join(' ')}
             </div>
         </div>
     `;
-    
-    $('#story-btn-replay').addEventListener('click', () => {
-        playTap();
-        start();
-    });
-    
-    $('#story-btn-menu').addEventListener('click', () => {
-        playTap();
-        init();
+
+    renderGameResults({
+        score: res.score,
+        isNewRecord: isNewRecord,
+        detailsHTML: detailsHTML,
+        prefix: 'story',
+        onReplay: () => start(),
+        onMenu: () => init()
     });
 }
 

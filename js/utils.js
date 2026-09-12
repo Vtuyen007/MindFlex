@@ -67,3 +67,35 @@ export function triggerHaptic(type = 'light', isEnabled = true) {
         navigator.vibrate([20, 30, 20]); // error vibration
     }
 }
+
+/**
+ * Show a custom confirm modal, replacing the native window.confirm
+ */
+export function showConfirmModal(message, onConfirm, onCancel) {
+    const modal = $('#global-confirm-modal');
+    if (!modal) return;
+    
+    $('#confirm-modal-message').textContent = message;
+    
+    const btnYes = $('#btn-confirm-yes');
+    const btnNo = $('#btn-confirm-no');
+    
+    // Remove old listeners to avoid duplicates
+    const newBtnYes = btnYes.cloneNode(true);
+    const newBtnNo = btnNo.cloneNode(true);
+    btnYes.parentNode.replaceChild(newBtnYes, btnYes);
+    btnNo.parentNode.replaceChild(newBtnNo, btnNo);
+    
+    newBtnYes.addEventListener('click', () => {
+        modal.style.display = 'none';
+        if (typeof onConfirm === 'function') onConfirm();
+    });
+    
+    newBtnNo.addEventListener('click', () => {
+        modal.style.display = 'none';
+        if (typeof onCancel === 'function') onCancel();
+    });
+    
+    modal.style.display = 'flex';
+}
+

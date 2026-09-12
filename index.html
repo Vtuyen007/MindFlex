@@ -293,6 +293,17 @@
         </a>
     </nav>
 
+    <!-- Global Confirm Modal -->
+    <div id="global-confirm-modal" class="pause-overlay" style="display: none; z-index: var(--z-modal);">
+        <div class="glass-card pause-modal" style="text-align: center;">
+            <h3 id="confirm-modal-message" style="margin-bottom: var(--spacing-lg);">Bạn có chắc chắn?</h3>
+            <div class="pause-actions" style="display: flex; gap: var(--spacing-md); justify-content: center;">
+                <button id="btn-confirm-yes" class="btn btn-primary btn-large" style="flex: 1;">Có</button>
+                <button id="btn-confirm-no" class="btn btn-secondary btn-large" style="flex: 1;">Không</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Global Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 

@@ -1,6 +1,7 @@
 import { $, $$, formatTime, shuffleArray, triggerHaptic } from '../utils.js';
 import * as Storage from '../storage.js';
 import { playTap, playCorrect, playError, playCompletion } from '../audio.js';
+import { renderGameResults } from '../game-ui.js';
 
 const GAME_ID = 'schulte';
 let state = 'idle'; // idle, playing, paused, completed
@@ -321,56 +322,32 @@ export function finish(completed) {
 }
 
 function renderResults(res, isNewRecord) {
-    $('#game-play-area').style.display = 'none';
-    $('#game-setup-area').style.display = 'none';
-    $('#btn-game-pause').style.display = 'none';
-    
-    const resultsArea = $('#game-results-area');
-    resultsArea.style.display = 'block';
-    
-    let fastest = intervals.length > 0 ? Math.min(...intervals) : 0;
-    
-    resultsArea.innerHTML = `
-        <div class="glass-card anim-pop-in" style="text-align: center;">
-            <h3>Kết quả</h3>
-            ${isNewRecord ? '<div style="color: var(--clr-accent); font-weight: bold; margin-top: -10px;">Kỷ lục mới!</div>' : ''}
-            
-            <div class="result-score">${res.score}</div>
-            
-            <div class="result-details">
-                <div class="stat-card">
-                    <div class="stat-value">${res.accuracy}%</div>
-                    <div class="stat-label">Chính xác</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${res.errors}</div>
-                    <div class="stat-label">Lỗi</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${formatTime(res.duration)}</div>
-                    <div class="stat-label">Thời gian</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${(res.avgTime / 1000).toFixed(2)}s</div>
-                    <div class="stat-label">TB / Ô</div>
-                </div>
-            </div>
-            
-            <div class="action-buttons">
-                <button id="schulte-btn-replay" class="btn btn-primary btn-large">Chơi lại</button>
-                <button id="schulte-btn-menu" class="btn btn-secondary btn-large">Tùy chỉnh</button>
-            </div>
+    const detailsHTML = `
+        <div class="stat-card" style="flex: 1; min-width: 100px;">
+            <div class="stat-value">${res.accuracy}%</div>
+            <div class="stat-label">Chính xác</div>
+        </div>
+        <div class="stat-card" style="flex: 1; min-width: 100px;">
+            <div class="stat-value">${res.errors}</div>
+            <div class="stat-label">Lỗi</div>
+        </div>
+        <div class="stat-card" style="flex: 1; min-width: 100px;">
+            <div class="stat-value">${formatTime(res.duration)}</div>
+            <div class="stat-label">Thời gian</div>
+        </div>
+        <div class="stat-card" style="flex: 1; min-width: 100px;">
+            <div class="stat-value">${(res.avgTime / 1000).toFixed(2)}s</div>
+            <div class="stat-label">TB / Ô</div>
         </div>
     `;
-    
-    $('#schulte-btn-replay').addEventListener('click', () => {
-        playTap();
-        start();
-    });
-    
-    $('#schulte-btn-menu').addEventListener('click', () => {
-        playTap();
-        init();
+
+    renderGameResults({
+        score: res.score,
+        isNewRecord: isNewRecord,
+        detailsHTML: detailsHTML,
+        prefix: 'schulte',
+        onReplay: () => start(),
+        onMenu: () => init()
     });
 }
 

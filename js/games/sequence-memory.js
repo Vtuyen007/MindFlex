@@ -1,6 +1,7 @@
 import { $, $$, sleep, showToast, triggerHaptic } from '../utils.js';
 import * as Storage from '../storage.js';
 import { playTap, playSimonTone, playCorrect, playError, playCompletion, playCountdown } from '../audio.js';
+import { renderGameResults } from '../game-ui.js';
 
 const GAME_ID = 'sequence';
 let state = 'idle'; 
@@ -370,54 +371,32 @@ export function finish() {
 }
 
 function renderResults(res, isNewRecord) {
-    $('#game-play-area').style.display = 'none';
-    $('#game-setup-area').style.display = 'none';
-    $('#btn-game-pause').style.display = 'none';
-    
-    const resultsArea = $('#game-results-area');
-    resultsArea.style.display = 'block';
-    
-    resultsArea.innerHTML = `
-        <div class="glass-card anim-pop-in" style="text-align: center;">
-            <h3>Kết quả</h3>
-            ${isNewRecord ? '<div style="color: var(--clr-accent); font-weight: bold; margin-top: -10px;">Kỷ lục mới!</div>' : ''}
-            
-            <div class="result-score">${res.score}</div>
-            
-            <div class="result-details">
-                <div class="stat-card">
-                    <div class="stat-value" style="color: var(--clr-success)">${res.exactCount}/${config.rounds}</div>
-                    <div class="stat-label">Hoàn thành</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${res.accuracy}%</div>
-                    <div class="stat-label">Tỉ lệ đúng</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${res.maxLenReached}</div>
-                    <div class="stat-label">Chuỗi dài nhất</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${(res.avgLength).toFixed(1)}</div>
-                    <div class="stat-label">Độ dài TB</div>
-                </div>
-            </div>
-            
-            <div class="action-buttons">
-                <button id="seq-btn-replay" class="btn btn-primary btn-large">Chơi lại</button>
-                <button id="seq-btn-menu" class="btn btn-secondary btn-large">Tùy chỉnh</button>
-            </div>
+    const detailsHTML = `
+        <div class="stat-card" style="flex: 1; min-width: 100px;">
+            <div class="stat-value" style="color: var(--clr-success)">${res.exactCount}/${config.rounds}</div>
+            <div class="stat-label">Hoàn thành</div>
+        </div>
+        <div class="stat-card" style="flex: 1; min-width: 100px;">
+            <div class="stat-value">${res.accuracy}%</div>
+            <div class="stat-label">Tỉ lệ đúng</div>
+        </div>
+        <div class="stat-card" style="flex: 1; min-width: 100px;">
+            <div class="stat-value">${res.maxLenReached}</div>
+            <div class="stat-label">Chuỗi dài nhất</div>
+        </div>
+        <div class="stat-card" style="flex: 1; min-width: 100px;">
+            <div class="stat-value">${(res.avgLength).toFixed(1)}</div>
+            <div class="stat-label">Độ dài TB</div>
         </div>
     `;
-    
-    $('#seq-btn-replay').addEventListener('click', () => {
-        playTap();
-        start();
-    });
-    
-    $('#seq-btn-menu').addEventListener('click', () => {
-        playTap();
-        init();
+
+    renderGameResults({
+        score: res.score,
+        isNewRecord: isNewRecord,
+        detailsHTML: detailsHTML,
+        prefix: 'seq',
+        onReplay: () => start(),
+        onMenu: () => init()
     });
 }
 

@@ -216,22 +216,23 @@
 
 /* Stroop */
 .stroop-container {
-    flex-grow: 1;
+    flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    min-height: 350px;
-    gap: var(--spacing-lg);
+    min-height: 0; /* Cho phép co nhỏ hơn content nếu cần */
+    gap: var(--spacing-sm);
+    padding-bottom: var(--spacing-md);
 }
 
 .stroop-rule {
     text-align: center;
-    font-size: 1.2rem;
+    font-size: clamp(1rem, 3vh, 1.2rem);
     font-weight: 600;
     padding: var(--spacing-sm);
     background: var(--clr-bg-surface);
     border-radius: var(--radius-md);
-    margin-bottom: var(--spacing-md);
+    margin-bottom: 0;
 }
 
 .stroop-word {
@@ -239,15 +240,19 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 3.5rem;
+    font-size: clamp(3rem, 15vh, 5rem);
     font-weight: 800;
     text-transform: uppercase;
+    min-height: 100px;
 }
 
 .stroop-answers {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: var(--spacing-md);
+    gap: var(--spacing-sm);
+}
+.stroop-answers .btn {
+    padding: clamp(10px, 2vh, 16px);
 }
 
 /* Sequence Memory */

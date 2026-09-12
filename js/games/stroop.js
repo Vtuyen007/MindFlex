@@ -1,6 +1,7 @@
 import { $, $$, shuffleArray, triggerHaptic, sleep } from '../utils.js';
 import * as Storage from '../storage.js';
 import { playTap, playCorrect, playError, playCompletion } from '../audio.js';
+import { renderGameResults } from '../game-ui.js';
 
 const GAME_ID = 'stroop';
 let state = 'idle';
@@ -456,59 +457,36 @@ export function finish() {
 }
 
 function renderResults(res, isNewRecord) {
-    $('#game-play-area').style.display = 'none';
-    $('#game-setup-area').style.display = 'none';
-    $('#btn-game-pause').style.display = 'none';
-    
-    const resultsArea = $('#game-results-area');
-    resultsArea.style.display = 'block';
-    
-    resultsArea.innerHTML = `
-        <div class="glass-card anim-pop-in" style="text-align: center;">
-            <h3>Kết quả</h3>
-            ${isNewRecord ? '<div style="color: var(--clr-accent); font-weight: bold; margin-top: -10px;">Kỷ lục mới!</div>' : ''}
-            
-            <div class="result-score">${res.score}</div>
-            
-            <div class="result-details">
-                <div class="stat-card">
-                    <div class="stat-value" style="color: var(--clr-success)">${res.correct}</div>
-                    <div class="stat-label">Đúng</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" style="color: var(--clr-error)">${res.incorrect}</div>
-                    <div class="stat-label">Sai</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" style="color: var(--clr-warning)">${res.skipped}</div>
-                    <div class="stat-label">Bỏ qua</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${res.accuracy}%</div>
-                    <div class="stat-label">Chính xác</div>
-                </div>
-            </div>
-            
-            <div class="stat-card" style="margin-bottom: var(--spacing-lg)">
-                <div class="stat-value">${res.correct > 0 ? (res.avgTime).toFixed(0) : 0}ms</div>
-                <div class="stat-label">Thời gian phản hồi trung bình</div>
-            </div>
-            
-            <div class="action-buttons">
-                <button id="stroop-btn-replay" class="btn btn-primary btn-large">Chơi lại</button>
-                <button id="stroop-btn-menu" class="btn btn-secondary btn-large">Tùy chỉnh</button>
-            </div>
+    const detailsHTML = `
+        <div class="stat-card" style="flex: 1; min-width: 100px;">
+            <div class="stat-value" style="color: var(--clr-success)">${res.correct}</div>
+            <div class="stat-label">Đúng</div>
+        </div>
+        <div class="stat-card" style="flex: 1; min-width: 100px;">
+            <div class="stat-value" style="color: var(--clr-error)">${res.incorrect}</div>
+            <div class="stat-label">Sai</div>
+        </div>
+        <div class="stat-card" style="flex: 1; min-width: 100px;">
+            <div class="stat-value" style="color: var(--clr-warning)">${res.skipped}</div>
+            <div class="stat-label">Bỏ qua</div>
+        </div>
+        <div class="stat-card" style="flex: 1; min-width: 100px;">
+            <div class="stat-value">${res.accuracy}%</div>
+            <div class="stat-label">Chính xác</div>
+        </div>
+        <div class="stat-card" style="flex: 1; min-width: 200px; margin-top: var(--spacing-sm);">
+            <div class="stat-value">${res.correct > 0 ? (res.avgTime).toFixed(0) : 0}ms</div>
+            <div class="stat-label">Thời gian phản hồi trung bình</div>
         </div>
     `;
-    
-    $('#stroop-btn-replay').addEventListener('click', () => {
-        playTap();
-        start();
-    });
-    
-    $('#stroop-btn-menu').addEventListener('click', () => {
-        playTap();
-        init();
+
+    renderGameResults({
+        score: res.score,
+        isNewRecord: isNewRecord,
+        detailsHTML: detailsHTML,
+        prefix: 'stroop',
+        onReplay: () => start(),
+        onMenu: () => init()
     });
 }
 
