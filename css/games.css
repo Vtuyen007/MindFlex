@@ -220,6 +220,8 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    min-height: 350px;
+    gap: var(--spacing-lg);
 }
 
 .stroop-rule {
@@ -263,6 +265,42 @@
     font-size: 4rem;
     font-weight: 800;
 }
+
+/* Simon Sequence Grid */
+.simon-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+    width: 100%;
+    max-width: 320px;
+    aspect-ratio: 1 / 1;
+    margin: var(--spacing-xl) auto;
+}
+
+.simon-btn {
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: transform var(--anim-fast), opacity var(--anim-fast), filter var(--anim-fast);
+    opacity: 0.6;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    box-shadow: var(--shadow-sm);
+}
+
+.simon-btn:active {
+    transform: scale(0.95);
+}
+
+.simon-btn.active, .simon-btn.simon-flash {
+    opacity: 1;
+    filter: brightness(1.5);
+    box-shadow: 0 0 20px currentColor;
+    transform: scale(0.98);
+}
+
+.simon-0 { background-color: var(--clr-error); color: var(--clr-error); }
+.simon-1 { background-color: var(--clr-primary); color: var(--clr-primary); }
+.simon-2 { background-color: var(--clr-success); color: var(--clr-success); }
+.simon-3 { background-color: var(--clr-warning); color: var(--clr-warning); }
 
 .sequence-input-area {
     margin-top: auto;
