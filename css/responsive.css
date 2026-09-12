@@ -1,0 +1,94 @@
+/* Mobile First - Base styles cover mobile up to ~768px */
+
+/* Tablet and larger */
+@media (min-width: 768px) {
+    /* Hide mobile nav, show desktop header */
+    .mobile-nav {
+        display: none;
+    }
+    
+    .desktop-only {
+        display: flex;
+    }
+    
+    .view {
+        padding-bottom: var(--spacing-md);
+    }
+    
+    /* Grid adjustments */
+    .games-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .action-buttons {
+        flex-direction: row;
+        justify-content: center;
+    }
+    
+    .action-buttons .btn {
+        width: auto;
+        min-width: 200px;
+    }
+    
+    .dashboard-cards {
+        max-width: 800px;
+        margin: 0 auto var(--spacing-xl);
+    }
+    
+    .settings-container, .stats-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .setup-form {
+        max-width: 500px;
+        margin: 0 auto;
+        width: 100%;
+    }
+    
+    .game-area-section {
+        max-width: 800px;
+        margin: 0 auto;
+        width: 100%;
+    }
+    
+    /* Card hover effects for desktop */
+    @media (hover: hover) {
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .pool-icon:hover {
+            border-color: var(--clr-primary);
+        }
+    }
+}
+
+/* Small mobile overrides */
+@media (max-width: 350px) {
+    .dashboard-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .schulte-cell {
+        font-size: 1.2rem;
+    }
+    
+    .stroop-word {
+        font-size: 2.5rem;
+    }
+}
+
+/* Desktop Header hidden by default on mobile */
+@media (max-width: 767px) {
+    .desktop-only {
+        display: none !important;
+    }
+    
+    /* Ensure modals scroll internally on short screens */
+    .pause-modal {
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+}

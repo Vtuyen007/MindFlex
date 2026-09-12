@@ -1,0 +1,72 @@
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes modal-in {
+    0% { transform: scale(0.9); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes toast-in {
+    0% { transform: translateY(20px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes toast-out {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-10px); opacity: 0; }
+}
+
+/* Game Feedback Animations */
+@keyframes correct-pulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 var(--clr-success-bg); }
+    50% { transform: scale(1.05); box-shadow: 0 0 0 10px transparent; }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 transparent; }
+}
+
+.anim-correct {
+    animation: correct-pulse var(--anim-fast) ease-out;
+    background-color: var(--clr-success-bg) !important;
+    border-color: var(--clr-success) !important;
+    color: var(--clr-success) !important;
+}
+
+@keyframes error-shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-5px); }
+    40% { transform: translateX(5px); }
+    60% { transform: translateX(-3px); }
+    80% { transform: translateX(3px); }
+}
+
+.anim-error {
+    animation: error-shake var(--anim-fast) ease-in-out;
+    background-color: var(--clr-error-bg) !important;
+    border-color: var(--clr-error) !important;
+    color: var(--clr-error) !important;
+}
+
+@keyframes pop-in {
+    0% { transform: scale(0); opacity: 0; }
+    70% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.anim-pop-in {
+    animation: pop-in var(--anim-normal) cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    
+    .blob {
+        animation: none !important;
+    }
+}

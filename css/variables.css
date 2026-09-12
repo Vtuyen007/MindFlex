@@ -1,0 +1,90 @@
+:root {
+    /* Brand Colors */
+    --clr-primary: #3b82f6; /* Blue */
+    --clr-primary-hover: #2563eb;
+    --clr-secondary: #8b5cf6; /* Violet */
+    --clr-accent: #06b6d4; /* Cyan */
+    --clr-magenta: #d946ef;
+    
+    /* Semantic Colors */
+    --clr-success: #10b981;
+    --clr-success-bg: rgba(16, 185, 129, 0.15);
+    --clr-error: #ef4444;
+    --clr-error-bg: rgba(239, 68, 68, 0.15);
+    --clr-warning: #f59e0b;
+    --clr-info: #3b82f6;
+
+    /* Spacing */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
+
+    /* Radii */
+    --radius-sm: 0.5rem;
+    --radius-md: 1rem;
+    --radius-lg: 1.5rem;
+    --radius-full: 9999px;
+
+    /* Typography */
+    --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+    /* Layout */
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --nav-height: 4rem; /* For bottom nav */
+    --header-height: 4rem;
+    
+    /* Animation Durations */
+    --anim-fast: 150ms;
+    --anim-normal: 300ms;
+    --anim-slow: 500ms;
+
+    /* Z-indexes */
+    --z-background: -10;
+    --z-base: 1;
+    --z-nav: 100;
+    --z-overlay: 1000;
+    --z-modal: 1010;
+    --z-toast: 1100;
+}
+
+/* Light Theme Variables */
+:root[data-theme="light"] {
+    --clr-bg: #f8fafc;
+    --clr-bg-surface: rgba(255, 255, 255, 0.85);
+    --clr-bg-card: rgba(255, 255, 255, 0.9);
+    --clr-text: #0f172a;
+    --clr-text-muted: #64748b;
+    --clr-border: rgba(0, 0, 0, 0.1);
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    
+    /* RGB Background specific colors for light mode */
+    --bg-color-1: #e0f2fe;
+    --bg-color-2: #f3e8ff;
+    --bg-color-3: #ffedd5;
+    --overlay-color: rgba(255, 255, 255, 0.6);
+}
+
+/* Dark Theme Variables */
+:root[data-theme="dark"] {
+    --clr-bg: #020617;
+    --clr-bg-surface: rgba(15, 23, 42, 0.85);
+    --clr-bg-card: rgba(30, 41, 59, 0.7);
+    --clr-text: #f8fafc;
+    --clr-text-muted: #94a3b8;
+    --clr-border: rgba(255, 255, 255, 0.1);
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.6), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.7), 0 4px 6px -2px rgba(0, 0, 0, 0.5);
+    
+    /* RGB Background specific colors for dark mode */
+    --bg-color-1: #0f172a;
+    --bg-color-2: #1e1b4b;
+    --bg-color-3: #064e3b;
+    --overlay-color: rgba(2, 6, 23, 0.85);
+}
