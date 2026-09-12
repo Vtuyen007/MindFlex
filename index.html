@@ -7,6 +7,11 @@
     <meta name="description" content="Rèn luyện trí não mỗi ngày với MindFlex">
     <link rel="manifest" href="manifest.webmanifest">
     
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <!-- CSS -->
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/reset.css">
@@ -202,13 +207,13 @@
             <div class="settings-container">
                 <div class="glass-card settings-group">
                     <h3>Giao diện</h3>
-                    <div class="setting-item">
-                        <label for="theme-select">Chủ đề</label>
-                        <select id="theme-select" class="form-control">
-                            <option value="system">Hệ thống</option>
-                            <option value="light">Sáng</option>
-                            <option value="dark">Tối</option>
-                        </select>
+                    <div class="setting-item" style="flex-direction: column; align-items: stretch; gap: var(--spacing-sm);">
+                        <label>Chủ đề</label>
+                        <div class="theme-segment" style="display: flex; background: var(--clr-bg); border-radius: var(--radius-md); padding: 4px; gap: 4px;">
+                            <button class="btn theme-btn" data-theme="system" style="flex: 1; background: transparent; color: var(--clr-text-muted);">Hệ thống</button>
+                            <button class="btn theme-btn" data-theme="light" style="flex: 1; background: transparent; color: var(--clr-text-muted);">Sáng</button>
+                            <button class="btn theme-btn" data-theme="dark" style="flex: 1; background: transparent; color: var(--clr-text-muted);">Tối</button>
+                        </div>
                     </div>
                     <div class="setting-item">
                         <label for="rgb-bg-toggle">Hình nền động (RGB)</label>
