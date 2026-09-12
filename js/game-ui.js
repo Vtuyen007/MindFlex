@@ -44,6 +44,11 @@ export function renderGameResults({ score, isNewRecord, detailsHTML, onReplay, o
     
     $(`#${prefix}-btn-menu`).addEventListener('click', () => {
         playTap();
+        
+        // Chuyển lại về màn hình setup
+        $('#game-results-area').style.display = 'none';
+        $('#game-setup-area').style.display = 'block';
+        
         if (onMenu) onMenu();
     });
 }

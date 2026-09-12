@@ -97,7 +97,8 @@ function playPremiumTone(freqs, type = 'sine', duration = 0.3, volMod = 1) {
 }
 
 export function playTap() {
-    playPremiumTone(frequencies.tap, 'sine', 0.15, 0.4);
+    // Làm tiếng tap nhẹ nhàng và ngắn hơn
+    playPremiumTone(frequencies.tap, 'sine', 0.1, 0.2);
 }
 
 export function playSimonTone(idx) {
@@ -110,8 +111,8 @@ export function playCorrect() {
 }
 
 export function playError() {
-    // Sawtooth with low pitch for error buzz
-    playPremiumTone(frequencies.error, 'sawtooth', 0.35, 0.3);
+    // Dùng sóng sine với hợp âm thứ trầm (G3, Bb3) để nghe nhẹ nhàng, không bị gắt
+    playPremiumTone([196.00, 233.08], 'sine', 0.4, 0.3);
 }
 
 export function playCountdown(isGo = false) {

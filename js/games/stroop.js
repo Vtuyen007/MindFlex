@@ -39,7 +39,7 @@ function loadConfig() {
         questions: 20,
         timePerQuestion: 2000, // 0 for untimed
         colors: 4, // 4 or 6
-        mode: 'switch_random', // color, meaning, switch_group, switch_random
+        mode: 'color', // color, meaning, switch_group, switch_random
         immediateFeedback: true
     }, data.games[GAME_ID].lastSetup);
 }
@@ -224,12 +224,25 @@ function showNextTrial() {
     $('#stroop-progress').textContent = `${currentTrialIndex + 1} / ${config.questions}`;
     
     const ruleDisplay = $('#stroop-rule-display');
+    const prevRule = currentTrialIndex > 0 ? trials[currentTrialIndex-1].rule : null;
+    
     if (trial.rule === 'color') {
-        ruleDisplay.textContent = 'CHỌN MÀU MỰC';
+        ruleDisplay.innerHTML = 'CHỌN <u>MÀU MỰC</u>';
         ruleDisplay.style.color = 'var(--clr-primary)';
     } else {
-        ruleDisplay.textContent = 'CHỌN NGHĨA TỪ';
-        ruleDisplay.style.color = 'var(--clr-magenta)';
+        ruleDisplay.innerHTML = 'CHỌN <u>NGHĨA TỪ</u>';
+        ruleDisplay.style.color = 'var(--clr-accent)';
+    }
+    
+    ruleDisplay.style.transition = 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+    if (prevRule && prevRule !== trial.rule) {
+        // Hiệu ứng chớp phóng to để thu hút sự chú ý khi đổi luật
+        ruleDisplay.style.transform = 'scale(1.2)';
+        setTimeout(() => {
+            if(ruleDisplay) ruleDisplay.style.transform = 'scale(1)';
+        }, 400);
+    } else {
+        ruleDisplay.style.transform = 'scale(1)';
     }
     
     const wordDisplay = $('#stroop-word-display');
