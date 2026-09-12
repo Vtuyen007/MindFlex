@@ -1,4 +1,4 @@
-import { $ } from './utils.js';
+import { $, $$ } from './utils.js';
 import * as Storage from './storage.js';
 import { initTheme, toggleTheme, updateRGBBackground, updateThemeSegmentUI } from './theme.js';
 import { initAudio, playTap, toggleGlobalSound } from './audio.js';
