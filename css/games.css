@@ -219,10 +219,10 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    min-height: 0; /* Cho phép co nhỏ hơn content nếu cần */
-    gap: var(--spacing-sm);
-    padding-bottom: var(--spacing-md);
+    justify-content: center;
+    min-height: 0;
+    gap: var(--spacing-xl);
+    padding-bottom: var(--spacing-xl);
 }
 
 .stroop-rule {
@@ -236,14 +236,13 @@
 }
 
 .stroop-word {
-    flex-grow: 1;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: clamp(3rem, 15vh, 5rem);
     font-weight: 800;
     text-transform: uppercase;
-    min-height: 100px;
+    min-height: 150px;
 }
 
 .stroop-answers {
@@ -271,41 +270,56 @@
     font-weight: 800;
 }
 
-/* Simon Sequence Grid */
-.simon-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--spacing-md);
+/* Piano Sequence Grid */
+.piano-grid {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
     width: 100%;
-    max-width: 320px;
-    aspect-ratio: 1 / 1;
     margin: var(--spacing-xl) auto;
+    height: 200px;
+    padding: 0 var(--spacing-sm);
 }
 
-.simon-btn {
-    border-radius: var(--radius-lg);
+.piano-key {
+    flex: 1;
+    max-width: 60px;
+    background: linear-gradient(to bottom, #fff 0%, #f0f0f0 100%);
+    border: 1px solid var(--clr-border);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
     cursor: pointer;
-    transition: transform var(--anim-fast), opacity var(--anim-fast), filter var(--anim-fast);
-    opacity: 0.6;
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1), inset 0 -2px 5px rgba(0,0,0,0.05);
+    transition: all 0.1s cubic-bezier(0.4, 0.0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
 }
 
-.simon-btn:active {
-    transform: scale(0.95);
+.piano-key:active, .piano-key.simon-flash {
+    background: linear-gradient(to bottom, #e0e0e0 0%, #d0d0d0 100%);
+    transform: translateY(4px);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1), inset 0 -1px 3px rgba(0,0,0,0.1), 0 0 20px var(--clr-primary);
 }
 
-.simon-btn.active, .simon-btn.simon-flash {
-    opacity: 1;
-    filter: brightness(1.5);
-    box-shadow: 0 0 20px currentColor;
-    transform: scale(0.98);
+.piano-key::after {
+    content: '';
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    opacity: 0.8;
 }
-
-.simon-0 { background-color: var(--clr-error); color: var(--clr-error); }
-.simon-1 { background-color: var(--clr-primary); color: var(--clr-primary); }
-.simon-2 { background-color: var(--clr-success); color: var(--clr-success); }
-.simon-3 { background-color: var(--clr-warning); color: var(--clr-warning); }
+.piano-key-0::after { background-color: var(--clr-error); }
+.piano-key-1::after { background-color: var(--clr-warning); }
+.piano-key-2::after { background-color: var(--clr-success); }
+.piano-key-3::after { background-color: var(--clr-primary); }
+.piano-key-4::after { background-color: var(--clr-magenta); }
+.piano-key-5::after { background-color: var(--clr-accent); }
+.piano-key-6::after { background-color: #14b8a6; } /* teal */
+.piano-key-7::after { background-color: #f43f5e; } /* rose */
 
 .sequence-input-area {
     margin-top: auto;

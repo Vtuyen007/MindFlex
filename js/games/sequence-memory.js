@@ -30,7 +30,8 @@ function loadConfig() {
         speed: 800, // ms per flash
         rounds: 5,
         adaptive: true,
-        reverse: false
+        reverse: false,
+        keys: 4
     }, data.games[GAME_ID]?.lastSetup || {});
 }
 
@@ -46,6 +47,15 @@ function renderSetup() {
     setupArea.innerHTML = `
         <div class="setup-form glass-card">
             <h3>Tùy chỉnh Ghi nhớ chuỗi</h3>
+            
+            <div class="setting-item">
+                <label>Số lượng phím đàn</label>
+                <select id="seq-keys" class="form-control">
+                    <option value="4" ${config.keys == 4 ? 'selected' : ''}>4 Phím (Cơ bản)</option>
+                    <option value="6" ${config.keys == 6 ? 'selected' : ''}>6 Phím (Mở rộng)</option>
+                    <option value="8" ${config.keys == 8 ? 'selected' : ''}>8 Phím (Đầy đủ)</option>
+                </select>
+            </div>
             
             <div class="setting-item">
                 <label>Nhớ ngược (Reverse)</label>
@@ -103,6 +113,7 @@ function renderSetup() {
         config.length = parseInt($('#seq-length').value);
         config.rounds = parseInt($('#seq-rounds').value);
         config.speed = parseInt($('#seq-speed').value);
+        config.keys = parseInt($('#seq-keys').value) || 4;
         saveConfig();
         start();
     });
@@ -111,7 +122,7 @@ function renderSetup() {
 function generateSequence(length) {
     let seq = [];
     for (let i = 0; i < length; i++) {
-        seq.push(Math.floor(Math.random() * 4)); // 0, 1, 2, 3
+        seq.push(Math.floor(Math.random() * config.keys)); 
     }
     return seq;
 }
@@ -177,15 +188,12 @@ function renderPlayArea() {
         
         ${config.reverse ? '<div class="text-center" style="color: var(--clr-magenta); font-weight: bold;">NHỚ NGƯỢC LẠI</div>' : ''}
         
-        <div class="simon-grid">
-            <div class="simon-btn simon-0" data-idx="0"></div>
-            <div class="simon-btn simon-1" data-idx="1"></div>
-            <div class="simon-btn simon-2" data-idx="2"></div>
-            <div class="simon-btn simon-3" data-idx="3"></div>
+        <div class="piano-grid">
+            ${Array.from({length: config.keys}, (_, i) => `<div class="piano-key piano-key-${i}" data-idx="${i}"></div>`).join('')}
         </div>
     `;
     
-    $$('.simon-btn').forEach(btn => {
+    $$('.piano-key').forEach(btn => {
         btn.addEventListener('click', handleSimonClick);
     });
 }
@@ -195,7 +203,7 @@ async function presentSequence() {
     isPresenting = true;
     
     // Make sure buttons aren't clickable during presentation
-    $$('.simon-btn').forEach(btn => btn.style.pointerEvents = 'none');
+    $$('.piano-key').forEach(btn => btn.style.pointerEvents = 'none');
     
     for (let i = 0; i < targetSequence.length; i++) {
         if (state !== 'playing') {
@@ -204,7 +212,7 @@ async function presentSequence() {
         }
         
         const idx = targetSequence[i];
-        const btn = $('.simon-btn[data-idx="' + idx + '"]');
+        const btn = $('.piano-key[data-idx="' + idx + '"]');
         
         if (btn) {
             btn.classList.add('simon-flash');
@@ -225,19 +233,22 @@ async function presentSequence() {
         state = 'answering';
         $('#seq-status-text').textContent = 'ĐẾN LƯỢT BẠN!';
         $('#seq-status-text').style.color = 'var(--clr-success)';
-        $$('.simon-btn').forEach(btn => btn.style.pointerEvents = 'auto');
+        $$('.piano-key').forEach(btn => btn.style.pointerEvents = 'auto');
     }
 }
 
 async function handleSimonClick(e) {
     if (state !== 'answering') return;
     
-    const idx = parseInt(e.target.dataset.idx);
-    e.target.classList.add('simon-flash');
+    const btn = e.target.closest('.piano-key');
+    if (!btn) return;
+    
+    const idx = parseInt(btn.dataset.idx);
+    btn.classList.add('simon-flash');
     playSimonTone(idx);
     
     setTimeout(() => {
-        e.target.classList.remove('simon-flash');
+        btn.classList.remove('simon-flash');
     }, 200);
     
     const expectedSequence = config.reverse ? [...targetSequence].reverse() : targetSequence;
@@ -259,7 +270,7 @@ async function handleSimonClick(e) {
 
 async function handleRoundEnd(isSuccess) {
     state = 'preparing';
-    $$('.simon-btn').forEach(btn => btn.style.pointerEvents = 'none');
+    $$('.piano-key').forEach(btn => btn.style.pointerEvents = 'none');
     
     const statusText = $('#seq-status-text');
     

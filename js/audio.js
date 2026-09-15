@@ -13,12 +13,16 @@ const frequencies = {
     countdownGo: 1046.50 // C6
 };
 
-// Simon Tones
+// Piano Tones (C4 to C5 major scale)
 const simonTones = [
-    329.63, // E4 (Red / 0)
-    261.63, // C4 (Blue / 1)
-    440.00, // A4 (Green / 2)
-    392.00  // G4 (Yellow / 3)
+    261.63, // C4
+    293.66, // D4
+    329.63, // E4
+    349.23, // F4
+    392.00, // G4
+    440.00, // A4
+    493.88, // B4
+    523.25  // C5
 ];
 
 export function initAudio() {
@@ -103,7 +107,7 @@ export function playTap() {
 
 export function playSimonTone(idx) {
     const tone = simonTones[idx] || 400;
-    playPremiumTone(tone, 'triangle', 0.4, 0.6);
+    playPremiumTone(tone, 'sine', 0.5, 0.7);
 }
 
 export function playCorrect() {
