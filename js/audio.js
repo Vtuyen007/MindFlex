@@ -5,12 +5,12 @@ let isInitialized = false;
 
 // Premium tuned frequencies for UI
 const frequencies = {
-    tap: 523.25, // C5
-    correct: [523.25, 659.25], // C5, E5 (Major third)
-    correctChord: [523.25, 659.25, 783.99, 1046.50], // C Maj7 chord
-    error: 164.81, // E3
-    countdown: 659.25, // E5
-    countdownGo: 1046.50 // C6
+    tap: 659.25, // E5
+    correct: [659.25, 880.00], // E5, A5
+    correctChord: [523.25, 659.25, 783.99, 987.77], // C5, E5, G5, B5
+    error: 220.00, // A3
+    countdown: 440.00, // A4
+    countdownGo: 880.00 // A5
 };
 
 // Piano Tones (C4 to C5 major scale)
@@ -79,9 +79,9 @@ function playPremiumTone(freqs, type = 'sine', duration = 0.3, volMod = 1) {
         // Slight detune for a chorus, premium effect
         osc2.frequency.setValueAtTime(freq * 1.006, audioCtx.currentTime);
         
-        // Premium Envelope: Fast attack, smooth exponential decay
+        // Premium Envelope: Soft attack, smooth exponential decay
         gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(masterVolume / freqArray.length, audioCtx.currentTime + 0.02);
+        gainNode.gain.linearRampToValueAtTime(masterVolume / freqArray.length, audioCtx.currentTime + 0.05);
         gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
         
         const mixGain = audioCtx.createGain();
@@ -115,8 +115,8 @@ export function playCorrect() {
 }
 
 export function playError() {
-    // Dùng sóng sine với hợp âm thứ trầm (G3, Bb3) để nghe nhẹ nhàng, không bị gắt
-    playPremiumTone([196.00, 233.08], 'sine', 0.4, 0.3);
+    // Dùng sóng sine với hợp âm thứ trầm để nghe nhẹ nhàng, không bị gắt
+    playPremiumTone([220.00, 261.63], 'sine', 0.4, 0.3);
 }
 
 export function playCountdown(isGo = false) {

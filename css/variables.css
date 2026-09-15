@@ -64,10 +64,11 @@
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     
     /* RGB Background specific colors for light mode (Vibrant Pastels) */
-    --bg-color-1: #c7d2fe;
-    --bg-color-2: #fbcfe8;
-    --bg-color-3: #bbf7d0;
-    --overlay-color: rgba(255, 255, 255, 0.6);
+    --bg-color-1: #818cf8; /* deep indigo */
+    --bg-color-2: #f472b6; /* vibrant pink */
+    --bg-color-3: #34d399; /* vibrant emerald */
+    --bg-color-4: #38bdf8; /* sky */
+    --overlay-color: rgba(255, 255, 255, 0.4);
 }
 
 /* Dark Theme Variables */
@@ -83,8 +84,9 @@
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.7), 0 4px 6px -2px rgba(0, 0, 0, 0.5);
     
     /* RGB Background specific colors for dark mode (Deep Colorful) */
-    --bg-color-1: #312e81;
-    --bg-color-2: #4c1d95;
-    --bg-color-3: #065f46;
-    --overlay-color: rgba(2, 6, 23, 0.85);
+    --bg-color-1: #4f46e5;
+    --bg-color-2: #be185d;
+    --bg-color-3: #047857;
+    --bg-color-4: #0369a1;
+    --overlay-color: rgba(2, 6, 23, 0.7);
 }

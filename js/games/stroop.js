@@ -69,10 +69,12 @@ function renderSetup() {
             <div class="setting-item">
                 <label>Thời gian / câu</label>
                 <select id="stroop-time" class="form-control">
-                    <option value="0" ${config.timePerQuestion == 0 ? 'selected' : ''}>Không giới hạn</option>
                     <option value="2000" ${config.timePerQuestion == 2000 ? 'selected' : ''}>2 giây</option>
                     <option value="1000" ${config.timePerQuestion == 1000 ? 'selected' : ''}>1 giây</option>
+                    <option value="900" ${config.timePerQuestion == 900 ? 'selected' : ''}>0.9 giây</option>
+                    <option value="800" ${config.timePerQuestion == 800 ? 'selected' : ''}>0.8 giây</option>
                     <option value="700" ${config.timePerQuestion == 700 ? 'selected' : ''}>0.7 giây</option>
+                    <option value="600" ${config.timePerQuestion == 600 ? 'selected' : ''}>0.6 giây</option>
                     <option value="500" ${config.timePerQuestion == 500 ? 'selected' : ''}>0.5 giây</option>
                 </select>
             </div>
@@ -82,16 +84,6 @@ function renderSetup() {
                 <select id="stroop-colors" class="form-control">
                     <option value="4" ${config.colors == 4 ? 'selected' : ''}>4 Màu cơ bản</option>
                     <option value="6" ${config.colors == 6 ? 'selected' : ''}>6 Màu mở rộng</option>
-                </select>
-            </div>
-            
-            <div class="setting-item">
-                <label>Luật chơi</label>
-                <select id="stroop-mode" class="form-control">
-                    <option value="color" ${config.mode == 'color' ? 'selected' : ''}>Chỉ chọn màu mực</option>
-                    <option value="meaning" ${config.mode == 'meaning' ? 'selected' : ''}>Chỉ chọn nghĩa từ</option>
-                    <option value="switch_group" ${config.mode == 'switch_group' ? 'selected' : ''}>Đổi luật theo cụm</option>
-                    <option value="switch_random" ${config.mode == 'switch_random' ? 'selected' : ''}>Đổi luật ngẫu nhiên</option>
                 </select>
             </div>
             
@@ -112,7 +104,7 @@ function renderSetup() {
         config.questions = parseInt($('#stroop-questions').value);
         config.timePerQuestion = parseInt($('#stroop-time').value);
         config.colors = parseInt($('#stroop-colors').value);
-        config.mode = $('#stroop-mode').value;
+        config.mode = 'color';
         config.immediateFeedback = $('#stroop-feedback').checked;
         saveConfig();
         start();
@@ -127,21 +119,8 @@ function generateTrials() {
     
     let generated = [];
     
-    // Distribute rule types for switch_group and switch_random
-    let currentBlockRule = 'color';
-    
     for (let i = 0; i < config.questions; i++) {
-        // Determine rule
-        let rule = config.mode;
-        if (config.mode === 'switch_group') {
-            // switch every 5 questions
-            if (i % 5 === 0 && i !== 0) {
-                currentBlockRule = currentBlockRule === 'color' ? 'meaning' : 'color';
-            }
-            rule = currentBlockRule;
-        } else if (config.mode === 'switch_random') {
-            rule = Math.random() > 0.5 ? 'color' : 'meaning';
-        }
+        let rule = 'color';
         
         // Determine congruence (1/3 congruent, 2/3 incongruent)
         const isCongruent = Math.random() < 0.33;
@@ -224,26 +203,9 @@ function showNextTrial() {
     $('#stroop-progress').textContent = `${currentTrialIndex + 1} / ${config.questions}`;
     
     const ruleDisplay = $('#stroop-rule-display');
-    const prevRule = currentTrialIndex > 0 ? trials[currentTrialIndex-1].rule : null;
-    
-    if (trial.rule === 'color') {
-        ruleDisplay.innerHTML = 'CHỌN <u>MÀU MỰC</u>';
-        ruleDisplay.style.color = 'var(--clr-primary)';
-    } else {
-        ruleDisplay.innerHTML = 'CHỌN <u>NGHĨA TỪ</u>';
-        ruleDisplay.style.color = 'var(--clr-accent)';
-    }
-    
-    ruleDisplay.style.transition = 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-    if (prevRule && prevRule !== trial.rule) {
-        // Hiệu ứng chớp phóng to để thu hút sự chú ý khi đổi luật
-        ruleDisplay.style.transform = 'scale(1.2)';
-        setTimeout(() => {
-            if(ruleDisplay) ruleDisplay.style.transform = 'scale(1)';
-        }, 400);
-    } else {
-        ruleDisplay.style.transform = 'scale(1)';
-    }
+    ruleDisplay.innerHTML = 'CHỌN <u>MÀU MỰC</u>';
+    ruleDisplay.style.color = 'var(--clr-primary)';
+    ruleDisplay.style.transform = 'scale(1)';
     
     const wordDisplay = $('#stroop-word-display');
     wordDisplay.textContent = COLOR_MAP[trial.wordKey].text;
